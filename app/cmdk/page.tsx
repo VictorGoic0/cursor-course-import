@@ -48,9 +48,23 @@ export default function CmdkLandingPage() {
 
 function FeatureCard({ title, description }: { title: string; description: string }) {
   return (
-    <div className="flex-1 bg-white rounded-xl shadow p-6 text-center">
-      <h2 className="text-xl font-bold text-indigo-700 mb-2">{title}</h2>
-      <p className="text-gray-600">{description}</p>
+    <div className="flex-1 bg-white rounded-2xl shadow-lg p-8 text-center transition-transform transform hover:-translate-y-1 hover:shadow-2xl border border-indigo-100">
+      <div className="flex items-center justify-center mb-4">
+        <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-50">
+          <svg
+            className="w-7 h-7 text-indigo-500"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.2}
+            viewBox="0 0 24 24"
+          >
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.2" />
+            <path d="M12 8v4l3 2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+      </div>
+      <h2 className="text-2xl font-extrabold text-indigo-700 mb-2">{title}</h2>
+      <p className="text-gray-600 text-base">{description}</p>
     </div>
   );
 }
