@@ -1,197 +1,208 @@
 "use client";
-import { useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import Link from "next/link";
-import { ArrowLeft, Send, Bot, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
 
-interface Message {
-  id: number;
-  role: "user" | "ai";
-  content: string;
-  timestamp: Date;
-}
+const products = [
+  {
+    id: 1,
+    name: "Wireless Headphones",
+    price: 99.99,
+    image: "https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=crop&w=400&q=80",
+    tag: "New",
+  },
+  {
+    id: 2,
+    name: "Smart Watch",
+    price: 149.99,
+    image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=400&q=80",
+    tag: "Bestseller",
+  },
+  {
+    id: 3,
+    name: "Bluetooth Speaker",
+    price: 59.99,
+    image: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
+    tag: "Sale",
+  },
+  {
+    id: 4,
+    name: "VR Headset",
+    price: 299.99,
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=400&q=80",
+    tag: "Hot",
+  },
+];
 
-export default function AgentChatPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+const CART_KEY = "storefront_cart";
 
-  const handleSend = () => {
-    if (!input.trim() || isLoading) return;
-    
-    const userMsg: Message = {
-      id: Date.now(),
-      role: "user",
-      content: input.trim(),
-      timestamp: new Date(),
-    };
-    
-    setMessages((msgs) => [...msgs, userMsg]);
-    setInput("");
-    setIsLoading(true);
-    
-    // Mock AI response
-    setTimeout(() => {
-      setMessages((msgs) => [
-        ...msgs,
-        {
-          id: Date.now() + 1,
-          role: "ai",
-          content: `I understand you said "${userMsg.content}". How can I help you with that?`,
-          timestamp: new Date(),
-        },
-      ]);
-      setIsLoading(false);
-      scrollToBottom();
-    }, 1000);
-    
-    scrollToBottom();
-  };
+export default function Storefront() {
+  const [cart, setCart] = useState<number[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const cartRef = useRef<HTMLDivElement>(null);
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(CART_KEY);
+    if (stored) {
+      setCart(JSON.parse(stored));
     }
+  }, []);
+
+  // Persist cart to localStorage on change
+  useEffect(() => {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  }, [cart]);
+
+  // Close cart dropdown on outside click
+  useEffect(() => {
+    if (!cartOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (cartRef.current && !cartRef.current.contains(e.target as Node)) {
+        setCartOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [cartOpen]);
+
+  const addToCart = (id: number) => {
+    setCart((prev) => [...prev, id]);
   };
 
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-    }, 100);
+  const removeFromCart = (id: number) => {
+    setCart((prev) => {
+      const idx = prev.indexOf(id);
+      if (idx === -1) return prev;
+      const copy = [...prev];
+      copy.splice(idx, 1);
+      return copy;
+    });
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  // Get cart items with quantity
+  const cartItems = products
+    .map((product) => {
+      const quantity = cart.filter((id) => id === product.id).length;
+      return quantity > 0 ? { ...product, quantity } : null;
+    })
+    .filter(Boolean) as (typeof products[0] & { quantity: number })[];
+
+  const cartCount = cart.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-rose-900">
-      <div className="flex flex-col h-screen max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 p-4 border-b border-gray-700 bg-gray-900/50 backdrop-blur-sm">
-          <Link
-            href="/cmdk"
-            className="p-2 rounded-lg hover:bg-gray-800 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-300" />
-          </Link>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-white">AI Assistant</h1>
-              <p className="text-sm text-gray-400">Always here to help</p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 py-4 bg-white shadow-sm sticky top-0 z-10">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl font-bold tracking-tight">TechStore</span>
+          <Badge variant="secondary" className="ml-2">Demo</Badge>
         </div>
-
-        {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
-          <ScrollArea className="flex-1 px-4 py-6" ref={scrollRef}>
-            <div className="flex flex-col gap-6 max-w-3xl mx-auto">
-              {messages.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
-                    <Bot className="w-8 h-8 text-white" />
-                  </div>
-                  <h2 className="text-xl font-semibold text-white mb-2">Welcome to AI Assistant</h2>
-                  <p className="text-gray-400 text-sm max-w-md mx-auto">
-                    I&apos;m here to help you with any questions, tasks, or just to chat. What would you like to know?
-                  </p>
-                </div>
-              )}
-              
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  {msg.role === "ai" && (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                      <Bot className="w-4 h-4 text-white" />
-                    </div>
-                  )}
-                  
-                  <div className="flex flex-col max-w-[80%]">
-                    <div
-                      className={`rounded-2xl px-4 py-3 shadow-lg ${
-                        msg.role === "user"
-                          ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-                          : "bg-gray-800 text-gray-100 border border-gray-700"
-                      }`}
-                    >
-                      <p className="text-sm leading-relaxed">{msg.content}</p>
-                    </div>
-                    <span className={`text-xs text-gray-500 mt-1 ${
-                      msg.role === "user" ? "text-right" : "text-left"
-                    }`}>
-                      {formatTime(msg.timestamp)}
-                    </span>
-                  </div>
-                  
-                  {msg.role === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
-                      <User className="w-4 h-4 text-gray-300" />
-                    </div>
-                  )}
-                </div>
-              ))}
-              
-              {isLoading && (
-                <div className="flex gap-3 justify-start">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="bg-gray-800 text-gray-100 border border-gray-700 rounded-2xl px-4 py-3 shadow-lg">
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+        <nav className="flex items-center gap-6">
+          <a href="#" className="text-gray-700 hover:text-black font-medium">Home</a>
+          <a href="#" className="text-gray-700 hover:text-black font-medium">Products</a>
+          <a href="#" className="text-gray-700 hover:text-black font-medium">Contact</a>
+        </nav>
+        <div className="relative" ref={cartRef}>
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full"
+            onClick={() => setCartOpen((open) => !open)}
+            aria-label="Open cart"
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <circle cx="9" cy="21" r="1" />
+              <circle cx="20" cy="21" r="1" />
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h7.72a2 2 0 0 0 2-1.61L23 6H6" />
+            </svg>
+          </Button>
+          {cartCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+              {cartCount}
+            </span>
+          )}
+          {/* Cart Dropdown */}
+          {cartOpen && (
+            <div className="absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-lg p-4 z-20 min-h-[100px]">
+              <h3 className="font-bold text-lg mb-2">Cart</h3>
+              {cartItems.length === 0 ? (
+                <div className="text-gray-500 text-sm">Your cart is empty.</div>
+              ) : (
+                <ul className="divide-y divide-gray-200 max-h-60 overflow-y-auto">
+                  {cartItems.map((item) => (
+                    <li key={item.id} className="flex items-center justify-between py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 relative">
+                          <Image
+                            src={item.image.replace("/public", "")}
+                            alt={item.name}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                        <div>
+                          <div className="font-medium">{item.name}</div>
+                          <div className="text-xs text-gray-500">x{item.quantity}</div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-blue-600">${(item.price * item.quantity).toFixed(2)}</span>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => removeFromCart(item.id)}
+                          aria-label="Remove from cart"
+                        >
+                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {cartItems.length > 0 && (
+                <div className="mt-4 flex justify-between items-center">
+                  <span className="font-bold">Total:</span>
+                  <span className="font-bold text-blue-700 text-lg">
+                    ${cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}
+                  </span>
                 </div>
               )}
             </div>
-          </ScrollArea>
+          )}
         </div>
+      </header>
 
-        {/* Input Area */}
-        <div className="border-t border-gray-700 bg-gray-900/50 backdrop-blur-sm p-4">
-          <form
-            className="flex gap-3 max-w-3xl mx-auto"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-          >
-            <Input
-              className="flex-1 bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-              placeholder="Type your message..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleInputKeyDown}
-              disabled={isLoading}
-              autoFocus
-              autoComplete="off"
-              aria-label="Type your message"
-            />
-            <Button 
-              type="submit" 
-              disabled={!input.trim() || isLoading}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-          </form>
+      {/* Product Grid */}
+      <main className="max-w-6xl mx-auto px-4 py-10">
+        <h2 className="text-3xl font-bold mb-8 text-center">Featured Products</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {products.map((product) => (
+            <Card key={product.id} className="flex flex-col items-center p-4 group hover:shadow-lg transition-shadow">
+              <div className="w-32 h-32 mb-4 relative">
+                <Image
+                  src={product.image.replace("/public", "")}
+                  alt={product.name}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg font-semibold">{product.name}</span>
+                <Badge>{product.tag}</Badge>
+              </div>
+              <span className="text-xl font-bold text-blue-600 mb-4">${product.price.toFixed(2)}</span>
+              <Button onClick={() => addToCart(product.id)} className="w-full mt-auto">Add to Cart</Button>
+            </Card>
+          ))}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
