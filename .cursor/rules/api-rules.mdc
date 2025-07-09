@@ -1,0 +1,2 @@
+- always use express to write new api routes
+- follow the existing conventions in /api
