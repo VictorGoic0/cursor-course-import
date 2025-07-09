@@ -1,17 +1,7 @@
 "use client";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import Link from "next/link";
 
 export default function CmdkLandingPage() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleGetStarted = () => {
-    setIsLoading(true);
-    router.push("/signup");
-    setIsLoading(false);
-  };
-
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <h1 className="text-4xl font-extrabold text-gray-900 mb-4 text-center">
@@ -21,13 +11,12 @@ export default function CmdkLandingPage() {
         Unlock productivity, creativity, and support with your personal AI companion. 
         Whether you need help brainstorming, organizing, or just a friendly chat, our AI is here for you—anytime, anywhere.
       </p>
-      <button
-        className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-lg shadow transition-colors duration-200 disabled:opacity-60"
-        onClick={handleGetStarted}
-        disabled={isLoading}
+      <Link
+        href="/agent"
+        className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-lg shadow transition-colors duration-200 text-center"
       >
-        {isLoading ? "Loading..." : "Get Started"}
-      </button>
+        Get Started
+      </Link>
       <div className="mt-12 flex flex-col sm:flex-row gap-8 w-full max-w-3xl">
         <FeatureCard
           title="24/7 Availability"
