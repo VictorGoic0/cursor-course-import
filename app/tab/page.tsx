@@ -1,6 +1,5 @@
 // let's create a new page that talks about cursor's tab features
 "use client"
-
 import { useRouter } from "next/navigation";
 
 export default function TabPage() {
