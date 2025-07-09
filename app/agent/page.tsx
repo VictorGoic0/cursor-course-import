@@ -69,7 +69,7 @@ export default function AgentChatPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-rose-900">
       <div className="flex flex-col h-screen max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 p-4 border-b border-gray-700 bg-gray-900/50 backdrop-blur-sm">
